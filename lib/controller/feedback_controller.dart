@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:feedback_hms/model/feedback_questions_model.dart';
 import 'package:feedback_hms/model/patient_details_model.dart';
+import 'package:feedback_hms/model/question_answers_upload_model.dart';
 import 'package:feedback_hms/services/app_utils.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -30,7 +31,7 @@ class NewFeedbackController with ChangeNotifier {
         print("Patient details fetched: ${patientDetails?.toJson()}");
       } else {
         print(
-          'Failed to fetch patient details. Status: ${response.statusCode}',
+          'Failed to fetch patient details.----------------------------------------- Status: ${response.statusCode}',
         );
       }
     } catch (e) {
@@ -40,36 +41,6 @@ class NewFeedbackController with ChangeNotifier {
       notifyListeners();
     }
   }
-
-  // Future<void> getQuestionsForFeedback() async {
-  //   String uri = "${AppUtils.pythonBaseURL}/feedback-questions/";
-
-  //   try {
-  //     isLoading = true;
-  //     notifyListeners();
-
-  //     final response = await http.get(Uri.parse(uri));
-
-  //     if (response.statusCode == 200) {
-  //       final List<dynamic> data = jsonDecode(response.body);
-  //       questions = data;
-  //       responses = {}; // reset responses
-  //       notifyListeners();
-  //     } else {
-  //       print("Failed to fetch questions: ${response.statusCode}");
-  //     }
-  //   } catch (e) {
-  //     print("Error: $e");
-  //   } finally {
-  //     isLoading = false;
-  //     notifyListeners();
-  //   }
-  // }
-
-  // void setResponse(int index, String value) {
-  //   responses[index] = value;
-  //   notifyListeners();
-  // }
 
   Future<void> getFeedbackQuestions() async {
     String uri = "${AppUtils.pythonBaseURL}/feedback-questions/";
@@ -94,6 +65,55 @@ class NewFeedbackController with ChangeNotifier {
       print('Error fetching feedback questions: $e');
     } finally {
       notifyListeners();
+    }
+  }
+
+  Future<void> feedbackDataSaving({
+    required String patientId,
+    required String patientName,
+    required String ipOpNumber,
+    required String mobileNumber,
+    required String dateOfVisit,
+    required String departmentVisited,
+    required String wardRoomNo,
+    required String treatingDoctor,
+    required List<QuestionAnswersUploadModel> responses,
+  }) async {
+    String uri = "${AppUtils.pythonBaseURL}/feedback/";
+
+    log(
+      'res: --------------------------------${responses.map((e) => e.toJson()).toList()}',
+    );
+
+    //  body
+    Map<String, dynamic> body = {
+      "patient_id": patientId,
+      "patient_name": patientName,
+      "ip_op_number": ipOpNumber,
+      "mobile_number": mobileNumber,
+      "date_of_visit": dateOfVisit,
+      "department_visited": departmentVisited,
+      "ward_room_no": wardRoomNo,
+      "treating_doctor": treatingDoctor,
+      "responses": responses.map((e) => e.toJson()).toList(),
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(uri),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print(" Feedback submitted successfully");
+        print("Response: ${response.body}");
+      } else {
+        print("Failed to submit feedback. ");
+        print("Response: ${response.body}");
+      }
+    } catch (e) {
+      print(" Error : $e");
     }
   }
 }

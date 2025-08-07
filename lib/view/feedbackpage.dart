@@ -1,4 +1,4 @@
-import 'package:feedback_hms/model/feedback_questions_model.dart';
+import 'package:feedback_hms/model/question_answers_upload_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:feedback_hms/constants/color_constants.dart';
@@ -25,75 +25,13 @@ class _FeedbackNewState extends State<FeedbackNew> {
       TextEditingController();
   final TextEditingController departmentController = TextEditingController();
 
-  // final Map<int, String?> feedbackAnswers = {
-  //   for (var i = 1; i <= 20; i++) i: null,
-  // };
-  // final List<String> options = ['Excellent', 'Good', 'Fair', 'Poor'];
-
   String? rudeBehaviorAnswer;
   String? recommendHospitalAnswer;
   String? followUpAssistAnswer;
   String? isPatientOrParty;
   String? responseUploadOption;
 
-  // final List<Map<String, dynamic>> sections = [
-  //   {
-  //     "title": "Front Office & Admissions",
-  //     "icon": Icons.person_pin_rounded,
-  //     "questions": [
-  //       '1. Helpfulness and courtesy of front office staff',
-  //       '2. Clarity of admission / registration process',
-  //       '3. Waiting time for registration or token',
-  //     ],
-  //   },
-  //   {
-  //     "title": "Clinical Care",
-  //     "icon": Icons.local_hospital,
-  //     "questions": [
-  //       '4. Nursing care (attentiveness, promptness, empathy)',
-  //       '5. Doctors\' professionalism and communication',
-  //       '6. Explanation of condition and treatment plan',
-  //       '7. Time taken to attend by doctors or nurses',
-  //     ],
-  //   },
-  //   {
-  //     "title": "Diagnostics & Support Services",
-  //     "icon": Icons.biotech,
-  //     "questions": [
-  //       '8. Lab services (sample collection, waiting time)',
-  //       '9. Radiology services (X-ray, CT, MRI)',
-  //       '10. Timeliness of investigation reports',
-  //       '11. Ease of finding the diagnostic departments',
-  //     ],
-  //   },
-  //   {
-  //     "title": "Facilities, Maintenance & Security",
-  //     "icon": Icons.cleaning_services,
-  //     "questions": [
-  //       '12. Cleanliness of room, toilets, and surroundings',
-  //       '13. Maintenance response to any facility issues',
-  //       '14. Courtesy and presence of security staff',
-  //     ],
-  //   },
-  //   {
-  //     "title": "Food & Pharmacy",
-  //     "icon": Icons.restaurant,
-  //     "questions": [
-  //       '15. Quality and hygiene of food served',
-  //       '16. Timeliness and courtesy of food delivery staff',
-  //       '17. Pharmacy services - availability and staff behavior',
-  //     ],
-  //   },
-  //   {
-  //     "title": "Discharge & Billing",
-  //     "icon": Icons.receipt_long,
-  //     "questions": [
-  //       '18. Speed and coordination of discharge process',
-  //       '19. Clarity of discharge instructions and summary',
-  //       '20. Transparency of final billing',
-  //     ],
-  //   },
-  // ];
+  List<QuestionAnswersUploadModel> questionAnswers = [];
 
   Widget buildInlineRadioGroup({
     required String question,
@@ -124,17 +62,63 @@ class _FeedbackNewState extends State<FeedbackNew> {
                         selectedOptionIndexes[sectionId]![questionId!] = index;
                       });
 
+                      // Check if this questionId already exists
+                      int existingIndex = questionAnswers.indexWhere(
+                        (element) => element.questionId == questionId,
+                      );
+
+                      if (existingIndex != -1) {
+                        // If it exists, update the answer
+                        questionAnswers[existingIndex].answers = value;
+                      } else {
+                        // If not, add a new answer
+                        questionAnswers.add(
+                          QuestionAnswersUploadModel(
+                            questionId: questionId!,
+                            answers: value,
+                          ),
+                        );
+                      }
+
+                      print('All Answers:');
+                      for (var answer in questionAnswers) {
+                        print(
+                          'QID: ${answer.questionId}, Ans: ${answer.answers}',
+                        );
+                      }
+
                       print('Section ID: $sectionId');
                       print('Question ID: $questionId');
                       print('Selected Index: $index');
                       print('Selected Value: $value');
                     },
+
                     backgroundColor: Colors.grey[200],
                   );
                 }).toList(),
               )
             : TextFormField(
                 controller: selectedOptionControllers[sectionId]?[questionId],
+                onChanged: (value) {
+                  int existingIndex = questionAnswers.indexWhere(
+                    (element) => element.questionId == questionId,
+                  );
+
+                  if (existingIndex != -1) {
+                    // If it exists, update the answer
+                    questionAnswers[existingIndex].answers = value;
+                  } else {
+                    // If not, add a new answer
+                    questionAnswers.add(
+                      QuestionAnswersUploadModel(
+                        questionId: questionId!,
+                        answers: value,
+                      ),
+                    );
+                  }
+                  print(questionId);
+                  print(value);
+                },
               ),
         const Divider(height: 20),
       ],
@@ -219,11 +203,65 @@ class _FeedbackNewState extends State<FeedbackNew> {
                                       ),
                                     ),
                                     const SizedBox(height: 16),
+
+                                    // Patient ID field with submission logic
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 6,
+                                      ),
+                                      child: TextFormField(
+                                        controller: patientIdController,
+                                        decoration: InputDecoration(
+                                          labelText: "Patient ID",
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 10,
+                                              ),
+                                        ),
+                                        onFieldSubmitted: (value) async {
+                                          await Provider.of<
+                                                NewFeedbackController
+                                              >(context, listen: false)
+                                              .getPatientDetailsForFeedback(
+                                                patientIdController.text.trim(),
+                                              );
+
+                                          final details =
+                                              Provider.of<
+                                                    NewFeedbackController
+                                                  >(context, listen: false)
+                                                  .patientDetails;
+
+                                          setState(() {
+                                            patientNameController.text =
+                                                details?.name ?? '';
+                                            ipOrOpNumberController.text =
+                                                details?.ipno ??
+                                                details?.opno ??
+                                                '';
+                                            mobileNoController.text =
+                                                details?.phone ?? '';
+                                            dateOfVisitController.text =
+                                                details?.registrationDate ?? '';
+                                            departmentVistitedController.text =
+                                                details?.department ?? '';
+                                            roomNoController.text =
+                                                details?.roomNumber ?? '';
+                                            conusultedDoctorController.text =
+                                                details?.doctor ?? '';
+                                          });
+                                        },
+                                      ),
+                                    ),
+
+                                    // Remaining fields dynamically
                                     ...[
-                                      {
-                                        "label": "Patient ID",
-                                        "controller": patientIdController,
-                                      },
                                       {
                                         "label": "Patient Name",
                                         "controller": patientNameController,
@@ -351,196 +389,87 @@ class _FeedbackNewState extends State<FeedbackNew> {
                               ),
                             ],
 
-                            // -----------------------------------
-                            const SizedBox(height: 20),
-                            const Text(
-                              "SECTION 8: Interaction & Courtesy",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              decoration: const InputDecoration(
-                                labelText: "Overall behavior of hospital staff",
-                              ),
-                            ),
-                            TextFormField(
-                              decoration: const InputDecoration(
-                                labelText:
-                                    "Were you treated respectfully at all points?",
-                              ),
-                            ),
-                            TextFormField(
-                              decoration: const InputDecoration(
-                                labelText:
-                                    "Were your questions answered kindly?",
-                              ),
-                            ),
-
-                            const SizedBox(height: 10),
-                            const Text(
-                              "Did anyone behave rudely or unprofessionally?",
-                            ),
-                            Row(
-                              children: ["Yes", "No"].map((val) {
-                                return Expanded(
-                                  child: RadioListTile<String>(
-                                    value: val,
-                                    groupValue: rudeBehaviorAnswer,
-                                    onChanged: (value) => setState(
-                                      () => rudeBehaviorAnswer = value,
-                                    ),
-                                    title: Text(val),
-                                    dense: true,
-                                    visualDensity: VisualDensity.compact,
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                            TextFormField(
-                              controller: departmentController,
-                              decoration: const InputDecoration(
-                                labelText: "Department (if Yes)",
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-                            const Text(
-                              "SECTION 9: Overall Experience",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 10),
-                            const Text(
-                              "Would you recommend our hospital to others?",
-                            ),
-                            Row(
-                              children: ["Yes", "No"].map((val) {
-                                return Expanded(
-                                  child: RadioListTile<String>(
-                                    value: val,
-                                    groupValue: recommendHospitalAnswer,
-                                    onChanged: (value) => setState(
-                                      () => recommendHospitalAnswer = value,
-                                    ),
-                                    title: Text(val),
-                                    dense: true,
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-
-                            const SizedBox(height: 10),
-                            const Text("OPTIONAL SERVICE"),
-                            const Text(
-                              "Would you like us to assist in follow-up booking?",
-                            ),
-                            Row(
-                              children: ["Yes", "No"].map((val) {
-                                return Expanded(
-                                  child: RadioListTile<String>(
-                                    value: val,
-                                    groupValue: followUpAssistAnswer,
-                                    onChanged: (value) => setState(
-                                      () => followUpAssistAnswer = value,
-                                    ),
-                                    title: Text(val),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-
-                            const Text("(If yes, our staff will contact you)"),
-                            const SizedBox(height: 10),
-
-                            Row(
-                              children: [
-                                const Text("Are you the:"),
-                                Checkbox(
-                                  value: isPatientOrParty == "Patient",
-                                  onChanged: (value) {
-                                    setState(() {
-                                      isPatientOrParty = value!
-                                          ? "Patient"
-                                          : null;
-                                    });
-                                  },
-                                ),
-                                const Text("Patient"),
-                                Checkbox(
-                                  value: isPatientOrParty == "Patient Party",
-                                  onChanged: (value) {
-                                    setState(() {
-                                      isPatientOrParty = value!
-                                          ? "Patient Party"
-                                          : null;
-                                    });
-                                  },
-                                ),
-                                const Text("Patient Party"),
-                              ],
-                            ),
-
-                            const SizedBox(height: 10),
-                            const Text(
-                              "Would you like to upload this feedback to our website?",
-                            ),
-                            Row(
-                              children: ["Yes", "No"].map((val) {
-                                return Expanded(
-                                  child: RadioListTile<String>(
-                                    value: val,
-                                    groupValue: responseUploadOption,
-                                    onChanged: (value) => setState(
-                                      () => responseUploadOption = value,
-                                    ),
-                                    title: Text(val),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-
                             const SizedBox(height: 30),
                             Center(
                               child: ElevatedButton(
-                                onPressed: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        behavior: SnackBarBehavior.floating,
-                                        margin: const EdgeInsets.symmetric(
-                                          horizontal: 24,
-                                          vertical: 20,
-                                        ),
-                                        backgroundColor:
-                                            ColorConstants.mainLightBlue,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
+                                onPressed: () async {
+                                  final functionProvider =
+                                      Provider.of<NewFeedbackController>(
+                                        context,
+                                        listen: false,
+                                      );
+
+                                  await functionProvider.feedbackDataSaving(
+                                    patientId: patientIdController.text.trim(),
+                                    patientName: patientNameController.text,
+                                    ipOpNumber: ipOrOpNumberController.text,
+                                    mobileNumber: mobileNoController.text,
+                                    dateOfVisit: dateOfVisitController.text,
+                                    departmentVisited:
+                                        departmentVistitedController.text,
+                                    wardRoomNo: roomNoController.text,
+                                    treatingDoctor:
+                                        conusultedDoctorController.text,
+                                    responses: questionAnswers,
+                                  );
+
+                                  // ✅ Show success message
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      behavior: SnackBarBehavior.floating,
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 20,
+                                      ),
+                                      backgroundColor:
+                                          ColorConstants.mainLightBlue,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      duration: const Duration(seconds: 3),
+                                      content: Row(
+                                        children: const [
+                                          Icon(
+                                            Icons.check_circle_outline,
+                                            color: Colors.white,
                                           ),
-                                        ),
-                                        duration: const Duration(seconds: 3),
-                                        content: Row(
-                                          children: const [
-                                            Icon(
-                                              Icons.check_circle_outline,
-                                              color: Colors.white,
-                                            ),
-                                            SizedBox(width: 12),
-                                            Expanded(
-                                              child: Text(
-                                                "Feedback submitted successfully!",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 16,
-                                                ),
+                                          SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              "Feedback submitted successfully!",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16,
                                               ),
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
-                                    );
-                                  }
+                                    ),
+                                  );
+
+                                  // ✅ Clear all the text fields
+                                  patientIdController.clear();
+                                  patientNameController.clear();
+                                  ipOrOpNumberController.clear();
+                                  mobileNoController.clear();
+                                  dateOfVisitController.clear();
+                                  departmentVistitedController.clear();
+                                  roomNoController.clear();
+                                  conusultedDoctorController.clear();
+
+                                  // ✅ Optionally clear questionAnswers map if needed
+                                  questionAnswers.clear();
+                                  selectedOptionIndexes
+                                      .clear(); // Add this line or similar based on your implementation
+                                  selectedOptionControllers.clear();
+                                  setState(
+                                    () {},
+                                  ); // Rebuilds the UI with cleared values
+
+                                  setState(() {}); // refresh UI if needed
                                 },
+
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: ColorConstants.mainOrange,
                                   padding: const EdgeInsets.symmetric(
