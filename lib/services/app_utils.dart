@@ -13,7 +13,8 @@ class AppUtils {
   //     defaultValue: "http://192.168.1.28:8000/hmsapp/api");
 
   // naveen
-  static const String pythonBaseURL = String.fromEnvironment("BASE_URL",
-    defaultValue: "https://hmsdevenv.highlandhospitals.in/api/hmsapp/api",
+  static const String pythonBaseURL = String.fromEnvironment(
+    "BASE_URL",
+    defaultValue: "http://192.168.220.61:8000/hmsapp/api",
   );
 }
