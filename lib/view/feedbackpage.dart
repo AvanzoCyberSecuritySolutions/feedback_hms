@@ -33,6 +33,98 @@ class _FeedbackNewState extends State<FeedbackNew> {
 
   List<QuestionAnswersUploadModel> questionAnswers = [];
 
+  // Widget buildInlineRadioGroup({
+  //   required String question,
+  //   required List<String> options,
+  //   required int? sectionId,
+  //   required int? questionId,
+  //   required String? questionType,
+  // }) {
+  //   int? selectedIndex = selectedOptionIndexes[sectionId]?[questionId];
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Text(question, style: const TextStyle(fontSize: 14)),
+  //       const SizedBox(height: 8),
+  //       questionType != 'TEXT'
+  //           ? Wrap(
+  //               spacing: 10,
+  //               children: options.asMap().entries.map((option) {
+  //                 int index = option.key;
+  //                 String value = option.value;
+  //                 return ChoiceChip(
+  //                   label: Text(value),
+  //                   selected: selectedIndex == index,
+  //                   selectedColor: const Color.fromARGB(255, 255, 189, 90),
+  //                   onSelected: (_) {
+  //                     setState(() {
+  //                       selectedOptionIndexes[sectionId!] ??= {};
+  //                       selectedOptionIndexes[sectionId]![questionId!] = index;
+  //                     });
+
+  //                     // Check if this questionId already exists
+  //                     int existingIndex = questionAnswers.indexWhere(
+  //                       (element) => element.questionId == questionId,
+  //                     );
+
+  //                     if (existingIndex != -1) {
+  //                       // If it exists, update the answer
+  //                       questionAnswers[existingIndex].answers = value;
+  //                     } else {
+  //                       // If not, add a new answer
+  //                       questionAnswers.add(
+  //                         QuestionAnswersUploadModel(
+  //                           questionId: questionId!,
+  //                           answers: value,
+  //                         ),
+  //                       );
+  //                     }
+
+  //                     print('All Answers:');
+  //                     for (var answer in questionAnswers) {
+  //                       print(
+  //                         'QID: ${answer.questionId}, Ans: ${answer.answers}',
+  //                       );
+  //                     }
+
+  //                     print('Section ID: $sectionId');
+  //                     print('Question ID: $questionId');
+  //                     print('Selected Index: $index');
+  //                     print('Selected Value: $value');
+  //                   },
+
+  //                   backgroundColor: Colors.grey[200],
+  //                 );
+  //               }).toList(),
+  //             )
+  //           : TextFormField(
+  //               controller: selectedOptionControllers[sectionId]?[questionId],
+  //               onChanged: (value) {
+  //                 int existingIndex = questionAnswers.indexWhere(
+  //                   (element) => element.questionId == questionId,
+  //                 );
+
+  //                 if (existingIndex != -1) {
+  //                   // If it exists, update the answer
+  //                   questionAnswers[existingIndex].answers = value;
+  //                 } else {
+  //                   // If not, add a new answer
+  //                   questionAnswers.add(
+  //                     QuestionAnswersUploadModel(
+  //                       questionId: questionId!,
+  //                       answers: value,
+  //                     ),
+  //                   );
+  //                 }
+  //                 print(questionId);
+  //                 print(value);
+  //               },
+  //             ),
+  //       const Divider(height: 20),
+  //     ],
+  //   );
+  // }
+
   Widget buildInlineRadioGroup({
     required String question,
     required List<String> options,
@@ -41,6 +133,14 @@ class _FeedbackNewState extends State<FeedbackNew> {
     required String? questionType,
   }) {
     int? selectedIndex = selectedOptionIndexes[sectionId]?[questionId];
+
+    // ✅ Ensure map and controller exist for TEXT type
+    if (questionType == 'TEXT') {
+      selectedOptionControllers[sectionId ?? 0] ??= {};
+      selectedOptionControllers[sectionId ?? 0]![questionId ?? 0] ??=
+          TextEditingController();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -62,16 +162,13 @@ class _FeedbackNewState extends State<FeedbackNew> {
                         selectedOptionIndexes[sectionId]![questionId!] = index;
                       });
 
-                      // Check if this questionId already exists
                       int existingIndex = questionAnswers.indexWhere(
                         (element) => element.questionId == questionId,
                       );
 
                       if (existingIndex != -1) {
-                        // If it exists, update the answer
                         questionAnswers[existingIndex].answers = value;
                       } else {
-                        // If not, add a new answer
                         questionAnswers.add(
                           QuestionAnswersUploadModel(
                             questionId: questionId!,
@@ -79,36 +176,21 @@ class _FeedbackNewState extends State<FeedbackNew> {
                           ),
                         );
                       }
-
-                      print('All Answers:');
-                      for (var answer in questionAnswers) {
-                        print(
-                          'QID: ${answer.questionId}, Ans: ${answer.answers}',
-                        );
-                      }
-
-                      print('Section ID: $sectionId');
-                      print('Question ID: $questionId');
-                      print('Selected Index: $index');
-                      print('Selected Value: $value');
                     },
-
                     backgroundColor: Colors.grey[200],
                   );
                 }).toList(),
               )
             : TextFormField(
-                controller: selectedOptionControllers[sectionId]?[questionId],
+                controller: selectedOptionControllers[sectionId]![questionId],
                 onChanged: (value) {
                   int existingIndex = questionAnswers.indexWhere(
                     (element) => element.questionId == questionId,
                   );
 
                   if (existingIndex != -1) {
-                    // If it exists, update the answer
                     questionAnswers[existingIndex].answers = value;
                   } else {
-                    // If not, add a new answer
                     questionAnswers.add(
                       QuestionAnswersUploadModel(
                         questionId: questionId!,
@@ -116,8 +198,6 @@ class _FeedbackNewState extends State<FeedbackNew> {
                       ),
                     );
                   }
-                  print(questionId);
-                  print(value);
                 },
               ),
         const Divider(height: 20),
@@ -211,6 +291,8 @@ class _FeedbackNewState extends State<FeedbackNew> {
                                       ),
                                       child: TextFormField(
                                         controller: patientIdController,
+                                        textCapitalization:
+                                            TextCapitalization.characters,
                                         decoration: InputDecoration(
                                           labelText: "Patient ID",
                                           border: OutlineInputBorder(
@@ -224,6 +306,25 @@ class _FeedbackNewState extends State<FeedbackNew> {
                                                 vertical: 10,
                                               ),
                                         ),
+
+                                        onChanged: (value) {
+                                          final upper = value
+                                              .toUpperCase(); // Convert to uppercase
+                                          if (value != upper) {
+                                            // Update the text and keep cursor position at the end
+                                            patientIdController
+                                                .value = patientIdController
+                                                .value
+                                                .copyWith(
+                                                  text: upper,
+                                                  selection:
+                                                      TextSelection.collapsed(
+                                                        offset: upper.length,
+                                                      ),
+                                                );
+                                          }
+                                        },
+
                                         onFieldSubmitted: (value) async {
                                           await Provider.of<
                                                 NewFeedbackController
@@ -448,7 +549,29 @@ class _FeedbackNewState extends State<FeedbackNew> {
                                     ),
                                   );
 
-                                  // ✅ Clear all the text fields
+                                  // ✅ Clear all dynamic text question fields
+                                  selectedOptionControllers.forEach((
+                                    sectionId,
+                                    questionMap,
+                                  ) {
+                                    questionMap.forEach((
+                                      questionId,
+                                      controller,
+                                    ) {
+                                      controller
+                                          .clear(); // actually clears the text in the UI
+                                    });
+                                  });
+                                  selectedOptionControllers
+                                      .clear(); // then clear the map
+
+                                  // ✅ Clear choice selections
+                                  selectedOptionIndexes.clear();
+
+                                  // ✅ Clear stored answers
+                                  questionAnswers.clear();
+
+                                  // ✅ Clear patient detail fields
                                   patientIdController.clear();
                                   patientNameController.clear();
                                   ipOrOpNumberController.clear();
@@ -458,16 +581,7 @@ class _FeedbackNewState extends State<FeedbackNew> {
                                   roomNoController.clear();
                                   conusultedDoctorController.clear();
 
-                                  // ✅ Optionally clear questionAnswers map if needed
-                                  questionAnswers.clear();
-                                  selectedOptionIndexes
-                                      .clear(); // Add this line or similar based on your implementation
-                                  selectedOptionControllers.clear();
-                                  setState(
-                                    () {},
-                                  ); // Rebuilds the UI with cleared values
-
-                                  setState(() {}); // refresh UI if needed
+                                  setState(() {}); // rebuild the UI
                                 },
 
                                 style: ElevatedButton.styleFrom(
