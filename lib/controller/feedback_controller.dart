@@ -19,7 +19,7 @@ class NewFeedbackController with ChangeNotifier {
   Future<void> getPatientDetailsForFeedback(String patientId) async {
     String uri =
         "${AppUtils.pythonBaseURL}/patient-op-ip/?patient_id=$patientId";
- 
+
     try {
       isLoading = true;
       notifyListeners();
@@ -68,7 +68,7 @@ class NewFeedbackController with ChangeNotifier {
     }
   }
 
-  Future<void> feedbackDataSaving({
+  Future<bool> feedbackDataSaving({
     required String patientId,
     required String patientName,
     required String ipOpNumber,
@@ -85,7 +85,6 @@ class NewFeedbackController with ChangeNotifier {
       'res: --------------------------------${responses.map((e) => e.toJson()).toList()}',
     );
 
-    //  body
     Map<String, dynamic> body = {
       "patient_id": patientId,
       "patient_name": patientName,
@@ -106,14 +105,17 @@ class NewFeedbackController with ChangeNotifier {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print(" Feedback submitted successfully");
+        print("Feedback submitted successfully");
         print("Response: ${response.body}");
+        return true; // ✅ Success
       } else {
-        print("Failed to submit feedback. ");
+        print("Failed to submit feedback.");
         print("Response: ${response.body}");
+        return false; // ❌ Failure
       }
     } catch (e) {
-      print(" Error : $e");
+      print("Error: $e");
+      return false; // ❌ Error case
     }
   }
 }

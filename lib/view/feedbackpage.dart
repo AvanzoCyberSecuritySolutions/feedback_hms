@@ -500,56 +500,47 @@ class _FeedbackNewState extends State<FeedbackNew> {
                                         listen: false,
                                       );
 
-                                  await functionProvider.feedbackDataSaving(
-                                    patientId: patientIdController.text.trim(),
-                                    patientName: patientNameController.text,
-                                    ipOpNumber: ipOrOpNumberController.text,
-                                    mobileNumber: mobileNoController.text,
-                                    dateOfVisit: dateOfVisitController.text,
-                                    departmentVisited:
-                                        departmentVistitedController.text,
-                                    wardRoomNo: roomNoController.text,
-                                    treatingDoctor:
-                                        conusultedDoctorController.text,
-                                    responses: questionAnswers,
-                                  );
-
-                                  // ✅ Show success message
+                                  bool isSuccess = await functionProvider
+                                      .feedbackDataSaving(
+                                        patientId: patientIdController.text
+                                            .trim(),
+                                        patientName: patientNameController.text,
+                                        ipOpNumber: ipOrOpNumberController.text,
+                                        mobileNumber: mobileNoController.text,
+                                        dateOfVisit: dateOfVisitController.text,
+                                        departmentVisited:
+                                            departmentVistitedController.text,
+                                        wardRoomNo: roomNoController.text,
+                                        treatingDoctor:
+                                            conusultedDoctorController.text,
+                                        responses: questionAnswers,
+                                      );
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
+                                      backgroundColor: isSuccess
+                                          ? Colors.green
+                                          : Colors.red,
                                       behavior: SnackBarBehavior.floating,
                                       margin: const EdgeInsets.symmetric(
                                         horizontal: 24,
                                         vertical: 20,
                                       ),
-                                      backgroundColor:
-                                          ColorConstants.mainLightBlue,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      duration: const Duration(seconds: 3),
-                                      content: Row(
-                                        children: const [
-                                          Icon(
-                                            Icons.check_circle_outline,
-                                            color: Colors.white,
-                                          ),
-                                          SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              "Feedback submitted successfully!",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                      content: Text(
+                                        isSuccess
+                                            ? "Feedback submitted successfully!"
+                                            : "Failed to submit feedback",
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                        ),
                                       ),
                                     ),
                                   );
 
-                                  // ✅ Clear all dynamic text question fields
+                                  // Clear fields always
                                   selectedOptionControllers.forEach((
                                     sectionId,
                                     questionMap,
@@ -558,20 +549,12 @@ class _FeedbackNewState extends State<FeedbackNew> {
                                       questionId,
                                       controller,
                                     ) {
-                                      controller
-                                          .clear(); // actually clears the text in the UI
+                                      controller.clear();
                                     });
                                   });
-                                  selectedOptionControllers
-                                      .clear(); // then clear the map
-
-                                  // ✅ Clear choice selections
+                                  selectedOptionControllers.clear();
                                   selectedOptionIndexes.clear();
-
-                                  // ✅ Clear stored answers
                                   questionAnswers.clear();
-
-                                  // ✅ Clear patient detail fields
                                   patientIdController.clear();
                                   patientNameController.clear();
                                   ipOrOpNumberController.clear();
@@ -581,7 +564,7 @@ class _FeedbackNewState extends State<FeedbackNew> {
                                   roomNoController.clear();
                                   conusultedDoctorController.clear();
 
-                                  setState(() {}); // rebuild the UI
+                                  setState(() {});
                                 },
 
                                 style: ElevatedButton.styleFrom(
