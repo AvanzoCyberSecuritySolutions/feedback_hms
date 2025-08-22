@@ -28,14 +28,14 @@ class NewFeedbackController with ChangeNotifier {
 
       if (response.statusCode == 200) {
         patientDetails = NewFeedbackModel.fromJson(jsonDecode(response.body));
-        print("Patient details fetched: ${patientDetails?.toJson()}");
+        debugPrint("Patient details fetched: ${patientDetails?.toJson()}");
       } else {
-        print(
+        debugPrint(
           'Failed to fetch patient details.----------------------------------------- Status: ${response.statusCode}',
         );
       }
     } catch (e) {
-      print('Error occurred while fetching patient details: $e');
+      debugPrint('Error occurred while fetching patient details: $e');
     } finally {
       isLoading = false;
       notifyListeners();
@@ -57,12 +57,12 @@ class NewFeedbackController with ChangeNotifier {
             .map((json) => FeedbackQuestionModel.fromJson(json))
             .toList();
         log("questions: $questions");
-        print("Feedback questions loaded: ${questions.length}");
+        debugPrint("Feedback questions loaded: ${questions.length}");
       } else {
-        print('Failed to fetch questions. Status: ${response.statusCode}');
+        debugPrint('Failed to fetch questions. Status: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching feedback questions: $e');
+      debugPrint('Error fetching feedback questions: $e');
     } finally {
       notifyListeners();
     }
@@ -105,16 +105,16 @@ class NewFeedbackController with ChangeNotifier {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print("Feedback submitted successfully");
-        print("Response: ${response.body}");
+        debugPrint("Feedback submitted successfully");
+        debugPrint("Response: ${response.body}");
         return true; // ✅ Success
       } else {
-        print("Failed to submit feedback.");
-        print("Response: ${response.body}");
+        debugPrint("Failed to submit feedback.");
+        debugPrint("Response: ${response.body}");
         return false; // ❌ Failure
       }
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
       return false; // ❌ Error case
     }
   }
