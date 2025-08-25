@@ -623,7 +623,11 @@ class _FeedbackNewState extends State<FeedbackNew> {
           label: "IP / OP Number",
           readOnly: true,
         ),
-        _buildTextField(controller: mobileNoController, label: "Mobile Number"),
+        _buildTextField(
+          controller: mobileNoController,
+          label: "Mobile Number",
+          readOnly: true,
+        ),
         _buildTextField(
           controller: dateOfVisitController,
           label: "Date of Visit",
