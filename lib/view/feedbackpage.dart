@@ -577,10 +577,10 @@ class _FeedbackNewState extends State<FeedbackNew> {
       children: [
         _buildTextField(
           controller: patientIdController,
-          label: "Patient ID",
+          label: "Enter your Patient ID or Phone no",
           isUpperCase: true,
           onSubmitted: () async {
-            await Provider.of<NewFeedbackController>(
+            bool status = await Provider.of<NewFeedbackController>(
               context,
               listen: false,
             ).getPatientDetailsForFeedback(patientIdController.text.trim());
@@ -589,41 +589,60 @@ class _FeedbackNewState extends State<FeedbackNew> {
               context,
               listen: false,
             ).patientDetails;
-
-            setState(() {
-              patientNameController.text = details?.name ?? '';
-              ipOrOpNumberController.text =
-                  details?.ipno ?? details?.opno ?? '';
-              mobileNoController.text = details?.phone ?? '';
-              dateOfVisitController.text = details?.registrationDate ?? '';
-              departmentVistitedController.text = details?.department ?? '';
-              roomNoController.text = details?.roomNumber ?? '';
-              conusultedDoctorController.text = details?.doctor ?? '';
-            });
+            if (status) {
+              setState(() {
+                patientIdController.text = details?.patientId ?? '';
+                patientNameController.text = details?.name ?? '';
+                ipOrOpNumberController.text =
+                    details?.ipno ?? details?.opno ?? '';
+                mobileNoController.text = details?.phone ?? '';
+                dateOfVisitController.text = details?.registrationDate ?? '';
+                departmentVistitedController.text = details?.department ?? '';
+                roomNoController.text = details?.roomNumber ?? '';
+                conusultedDoctorController.text = details?.doctor ?? '';
+              });
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('No patient found'),
+                  backgroundColor: ColorConstants.mainRed,
+                  duration: Duration(milliseconds: 1500),
+                ),
+              );
+            }
           },
         ),
         const SizedBox(height: 12),
         _buildTextField(
           controller: patientNameController,
           label: "Patient Name",
+          readOnly: true,
         ),
         _buildTextField(
           controller: ipOrOpNumberController,
           label: "IP / OP Number",
+          readOnly: true,
         ),
         _buildTextField(controller: mobileNoController, label: "Mobile Number"),
         _buildTextField(
           controller: dateOfVisitController,
           label: "Date of Visit",
+          readOnly: true,
         ),
         _buildTextField(
           controller: departmentVistitedController,
           label: "Department Visited",
+          readOnly: true,
         ),
-        _buildTextField(controller: roomNoController, label: "Ward / Room No"),
+        _buildTextField(
+          controller: roomNoController,
+          label: "Ward / Room No",
+          readOnly: true,
+        ),
         _buildTextField(
           controller: conusultedDoctorController,
           label: "Consultant / Doctor",
+          readOnly: true,
         ),
       ],
     );
@@ -635,11 +654,13 @@ class _FeedbackNewState extends State<FeedbackNew> {
     required String label,
     bool isUpperCase = false,
     VoidCallback? onSubmitted,
+    bool readOnly = false,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: TextFormField(
         controller: controller,
+        readOnly: readOnly,
         decoration: InputDecoration(
           labelText: label,
           filled: true,
