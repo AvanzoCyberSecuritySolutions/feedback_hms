@@ -270,55 +270,104 @@ class _FeedbackNewState extends State<FeedbackNew> {
                         sIndex++
                       )
                         _buildCard(
-                          child: Column(
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                questionsProvider
-                                        .questions[sIndex]
-                                        .sectionName ??
-                                    '',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: ColorConstants.mainOrange,
-                                  fontSize: 16,
+                              // --- Left Side: Questions ---
+                              Expanded(
+                                flex: 2,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      questionsProvider
+                                              .questions[sIndex]
+                                              .sectionName ??
+                                          '',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: ColorConstants.mainOrange,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    for (
+                                      int qIndex = 0;
+                                      qIndex <
+                                          (questionsProvider
+                                                  .questions[sIndex]
+                                                  .questions
+                                                  ?.length ??
+                                              0);
+                                      qIndex++
+                                    )
+                                      buildInlineRadioGroup(
+                                        question:
+                                            questionsProvider
+                                                .questions[sIndex]
+                                                .questions?[qIndex]
+                                                .questionText ??
+                                            '',
+                                        options:
+                                            questionsProvider
+                                                .questions[sIndex]
+                                                .questions?[qIndex]
+                                                .choices ??
+                                            [],
+                                        sectionId: questionsProvider
+                                            .questions[sIndex]
+                                            .sectionId,
+                                        questionId: questionsProvider
+                                            .questions[sIndex]
+                                            .questions?[qIndex]
+                                            .id,
+                                        questionType:
+                                            questionsProvider
+                                                .questions[sIndex]
+                                                .questions?[qIndex]
+                                                .questionType ??
+                                            '',
+                                      ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 10),
-                              for (
-                                int qIndex = 0;
-                                qIndex <
-                                    (questionsProvider
-                                        .questions[sIndex]
-                                        .questions!
-                                        .length);
-                                qIndex++
-                              )
-                                buildInlineRadioGroup(
-                                  question:
-                                      questionsProvider
-                                          .questions[sIndex]
-                                          .questions?[qIndex]
-                                          .questionText ??
-                                      '',
-                                  options:
-                                      questionsProvider
-                                          .questions[sIndex]
-                                          .questions?[qIndex]
-                                          .choices ??
-                                      [],
-                                  sectionId: questionsProvider
-                                      .questions[sIndex]
-                                      .sectionId,
-                                  questionId: questionsProvider
-                                      .questions[sIndex]
-                                      .questions?[qIndex]
-                                      .id,
-                                  questionType: questionsProvider
-                                      .questions[sIndex]
-                                      .questions?[qIndex]
-                                      .questionType,
+
+                              // --- Right Side: Lottie + Gradient text (only for first card) ---
+                              if (sIndex == 0) ...[
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  flex: 1,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Lottie.asset(
+                                        'assets/images/Doctor welcoming pacient (1).json',
+                                        height: 200,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      ShaderMask(
+                                        shaderCallback: (bounds) =>
+                                            const LinearGradient(
+                                              colors: [
+                                                ColorConstants.mainBlue,
+                                                ColorConstants.mainOrange,
+                                              ],
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                            ).createShader(bounds),
+                                        child: const Text(
+                                          "Get Well Soon",
+                                          style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                              ],
                             ],
                           ),
                         ),
