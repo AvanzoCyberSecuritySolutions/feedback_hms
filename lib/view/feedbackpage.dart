@@ -29,6 +29,14 @@ class _FeedbackNewState extends State<FeedbackNew> {
   Map<int, Map<int, int>> selectedOptionIndexes = {};
   Map<int, Map<int, TextEditingController>> selectedOptionControllers = {};
 
+  // Language state
+  String selectedLanguage = "en"; // default English
+  final Map<String, String> languageMap = {
+    "English": "en",
+    "Malayalam": "ml",
+    "Kannada": "kn",
+  };
+
   Widget buildInlineRadioGroup({
     required String question,
     required List<String> options,
@@ -140,7 +148,7 @@ class _FeedbackNewState extends State<FeedbackNew> {
       await Provider.of<NewFeedbackController>(
         context,
         listen: false,
-      ).getFeedbackQuestions();
+      ).getFeedbackQuestionsByLang(selectedLanguage); // default en
     });
   }
 
@@ -192,6 +200,46 @@ class _FeedbackNewState extends State<FeedbackNew> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16),
+
+                      // Language selector
+                      Row(
+                        children: [
+                          const Text(
+                            "Select Language: ",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          DropdownButton<String>(
+                            value: languageMap.entries
+                                .firstWhere(
+                                  (entry) => entry.value == selectedLanguage,
+                                )
+                                .key,
+                            items: languageMap.keys.map((lang) {
+                              return DropdownMenuItem<String>(
+                                value: lang,
+                                child: Text(lang),
+                              );
+                            }).toList(),
+                            onChanged: (String? newLang) async {
+                              if (newLang != null) {
+                                setState(() {
+                                  selectedLanguage = languageMap[newLang]!;
+                                });
+                                await Provider.of<NewFeedbackController>(
+                                  context,
+                                  listen: false,
+                                ).getFeedbackQuestionsByLang(selectedLanguage);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+
                       const SizedBox(height: 24),
 
                       // Patient Details
@@ -215,183 +263,64 @@ class _FeedbackNewState extends State<FeedbackNew> {
 
                       const SizedBox(height: 20),
 
-                      // ==============================
-                      // Dynamic Sections (with image ONLY on 2nd card)
-                      // ==============================
+                      // Dynamic Sections
                       for (
                         int sIndex = 0;
                         sIndex < questionsProvider.questions.length;
                         sIndex++
                       )
                         _buildCard(
-                          child: sIndex == 0
-                              // ---- SECOND CARD: Row with right image panel ----
-                              ? IntrinsicHeight(
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      // Left: Section title + questions
-                                      Expanded(
-                                        flex: 3,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              questionsProvider
-                                                      .questions[sIndex]
-                                                      .sectionName ??
-                                                  '',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color:
-                                                    ColorConstants.mainOrange,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 10),
-                                            for (
-                                              int qIndex = 0;
-                                              qIndex <
-                                                  (questionsProvider
-                                                      .questions[sIndex]
-                                                      .questions!
-                                                      .length);
-                                              qIndex++
-                                            )
-                                              buildInlineRadioGroup(
-                                                question:
-                                                    questionsProvider
-                                                        .questions[sIndex]
-                                                        .questions?[qIndex]
-                                                        .questionText ??
-                                                    '',
-                                                options:
-                                                    questionsProvider
-                                                        .questions[sIndex]
-                                                        .questions?[qIndex]
-                                                        .choices ??
-                                                    [],
-                                                sectionId: questionsProvider
-                                                    .questions[sIndex]
-                                                    .sectionId,
-                                                questionId: questionsProvider
-                                                    .questions[sIndex]
-                                                    .questions?[qIndex]
-                                                    .id,
-                                                questionType: questionsProvider
-                                                    .questions[sIndex]
-                                                    .questions?[qIndex]
-                                                    .questionType,
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      // Right: Image panel (fills card height)
-                                      Expanded(
-                                        flex: 2,
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            // Lottie animation
-                                            Expanded(
-                                              child: Lottie.asset(
-                                                'assets/images/Doctor welcoming pacient (1).json',
-                                                fit: BoxFit.contain,
-                                                repeat: true,
-                                              ),
-                                            ),
-
-                                            // Gradient Text
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                top: 8,
-                                                bottom: 16,
-                                              ),
-                                              child: ShaderMask(
-                                                shaderCallback: (bounds) =>
-                                                    const LinearGradient(
-                                                      colors: [
-                                                        Colors.teal,
-                                                        Colors.blueAccent,
-                                                        Colors.orange,
-                                                      ],
-                                                      begin: Alignment.topLeft,
-                                                      end:
-                                                          Alignment.bottomRight,
-                                                    ).createShader(bounds),
-                                                child: const Text(
-                                                  "Get Well Soon",
-                                                  style: TextStyle(
-                                                    fontSize: 26,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors
-                                                        .white, // Needed for ShaderMask
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              // ---- OTHER CARDS: normal column ----
-                              : Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      questionsProvider
-                                              .questions[sIndex]
-                                              .sectionName ??
-                                          '',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: ColorConstants.mainOrange,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    for (
-                                      int qIndex = 0;
-                                      qIndex <
-                                          (questionsProvider
-                                              .questions[sIndex]
-                                              .questions!
-                                              .length);
-                                      qIndex++
-                                    )
-                                      buildInlineRadioGroup(
-                                        question:
-                                            questionsProvider
-                                                .questions[sIndex]
-                                                .questions?[qIndex]
-                                                .questionText ??
-                                            '',
-                                        options:
-                                            questionsProvider
-                                                .questions[sIndex]
-                                                .questions?[qIndex]
-                                                .choices ??
-                                            [],
-                                        sectionId: questionsProvider
-                                            .questions[sIndex]
-                                            .sectionId,
-                                        questionId: questionsProvider
-                                            .questions[sIndex]
-                                            .questions?[qIndex]
-                                            .id,
-                                        questionType: questionsProvider
-                                            .questions[sIndex]
-                                            .questions?[qIndex]
-                                            .questionType,
-                                      ),
-                                  ],
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                questionsProvider
+                                        .questions[sIndex]
+                                        .sectionName ??
+                                    '',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: ColorConstants.mainOrange,
+                                  fontSize: 16,
                                 ),
+                              ),
+                              const SizedBox(height: 10),
+                              for (
+                                int qIndex = 0;
+                                qIndex <
+                                    (questionsProvider
+                                        .questions[sIndex]
+                                        .questions!
+                                        .length);
+                                qIndex++
+                              )
+                                buildInlineRadioGroup(
+                                  question:
+                                      questionsProvider
+                                          .questions[sIndex]
+                                          .questions?[qIndex]
+                                          .questionText ??
+                                      '',
+                                  options:
+                                      questionsProvider
+                                          .questions[sIndex]
+                                          .questions?[qIndex]
+                                          .choices ??
+                                      [],
+                                  sectionId: questionsProvider
+                                      .questions[sIndex]
+                                      .sectionId,
+                                  questionId: questionsProvider
+                                      .questions[sIndex]
+                                      .questions?[qIndex]
+                                      .id,
+                                  questionType: questionsProvider
+                                      .questions[sIndex]
+                                      .questions?[qIndex]
+                                      .questionType,
+                                ),
+                            ],
+                          ),
                         ),
 
                       const SizedBox(height: 30),
@@ -424,12 +353,10 @@ class _FeedbackNewState extends State<FeedbackNew> {
                             if (isSuccess) {
                               _clearForm();
 
-                              // 🎉 Show Thank You Dialog with Lottie
                               if (!context.mounted) return;
                               showDialog(
                                 context: context,
-                                barrierDismissible:
-                                    false, // Prevent closing by tapping outside
+                                barrierDismissible: false,
                                 builder: (context) {
                                   return AlertDialog(
                                     shape: RoundedRectangleBorder(
@@ -462,9 +389,7 @@ class _FeedbackNewState extends State<FeedbackNew> {
                                         const SizedBox(height: 20),
                                         ElevatedButton(
                                           onPressed: () {
-                                            Navigator.of(
-                                              context,
-                                            ).pop(); // close dialog
+                                            Navigator.of(context).pop();
                                           },
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor:
@@ -487,7 +412,6 @@ class _FeedbackNewState extends State<FeedbackNew> {
                                 },
                               );
                             } else {
-                              // ❌ Show error Snackbar if failed
                               if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -511,7 +435,6 @@ class _FeedbackNewState extends State<FeedbackNew> {
                               );
                             }
                           },
-
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 40,
@@ -546,7 +469,6 @@ class _FeedbackNewState extends State<FeedbackNew> {
   }
 
   // --- Reusable card widget ---
-  // --- Reusable card widget with gradient background ---
   Widget _buildCard({required Widget child}) {
     return Card(
       elevation: 6,

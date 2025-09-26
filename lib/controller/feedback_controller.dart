@@ -135,4 +135,34 @@ class NewFeedbackController with ChangeNotifier {
       return false; // ❌ Error case
     }
   }
+
+  Future<void> getFeedbackQuestionsByLang(String lang) async {
+    String uri = "${AppUtils.pythonBaseURL}/feedback-questions/?lang=$lang";
+
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      final response = await http.get(Uri.parse(uri));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = jsonDecode(response.body);
+
+        questions = jsonData
+            .map((json) => FeedbackQuestionModel.fromJson(json))
+            .toList();
+
+        debugPrint(
+          "Feedback questions loaded for lang=$lang: ${questions.length}",
+        );
+      } else {
+        debugPrint('Failed to fetch questions. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error fetching feedback questions: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }

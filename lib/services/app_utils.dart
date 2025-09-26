@@ -15,6 +15,6 @@ class AppUtils {
   // naveen
   static const String pythonBaseURL = String.fromEnvironment(
     "BASE_URL",
-    defaultValue: "http://192.168.220.71:8000/hmsapp/api",
+    defaultValue: "http://192.168.220.58:8001/hmsapp/api",
   );
 }
