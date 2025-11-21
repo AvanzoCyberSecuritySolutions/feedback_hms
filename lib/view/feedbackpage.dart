@@ -1,3 +1,4 @@
+import 'package:feedback_hms/model/patient_details_model.dart';
 import 'package:feedback_hms/model/question_answers_upload_model.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -36,6 +37,19 @@ class _FeedbackNewState extends State<FeedbackNew> {
     "Malayalam": "ml",
     "Kannada": "kn",
   };
+
+  void _fillPatientFields(NewFeedbackModel p) {
+    setState(() {
+      patientIdController.text = p.patientId ?? "";
+      patientNameController.text = p.name ?? "";
+      ipOrOpNumberController.text = p.ipno ?? p.opno ?? "";
+      mobileNoController.text = p.phone ?? "";
+      dateOfVisitController.text = p.registrationDate ?? "";
+      departmentVistitedController.text = p.department ?? "";
+      roomNoController.text = p.roomNumber ?? "";
+      conusultedDoctorController.text = p.doctor ?? "";
+    });
+  }
 
   Widget buildInlineRadioGroup({
     required String question,
@@ -551,36 +565,61 @@ class _FeedbackNewState extends State<FeedbackNew> {
           label: "Enter your Patient ID or Phone no",
           isUpperCase: true,
           onSubmitted: () async {
-            bool status = await Provider.of<NewFeedbackController>(
+            final provider = Provider.of<NewFeedbackController>(
               context,
               listen: false,
-            ).getPatientDetailsForFeedback(patientIdController.text.trim());
-            if (!context.mounted) return;
-            final details = Provider.of<NewFeedbackController>(
-              context,
-              listen: false,
-            ).patientDetails;
-            if (status) {
-              setState(() {
-                patientIdController.text = details?.patientId ?? '';
-                patientNameController.text = details?.name ?? '';
-                ipOrOpNumberController.text =
-                    details?.ipno ?? details?.opno ?? '';
-                mobileNoController.text = details?.phone ?? '';
-                dateOfVisitController.text = details?.registrationDate ?? '';
-                departmentVistitedController.text = details?.department ?? '';
-                roomNoController.text = details?.roomNumber ?? '';
-                conusultedDoctorController.text = details?.doctor ?? '';
-              });
-            } else {
+            );
+
+            final results = await provider.getPatientDetailsForFeedback(
+              patientIdController.text.trim(),
+            );
+
+            if (!mounted) return;
+
+            // CASE 0 — No patient found
+            if (results.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('No patient found'),
-                  backgroundColor: ColorConstants.mainRed,
-                  duration: Duration(milliseconds: 1500),
+                const SnackBar(
+                  content: Text("No patient found"),
+                  backgroundColor: Colors.red,
                 ),
               );
+              return;
             }
+
+            // CASE 1 — Only one patient, fill directly
+            if (results.length == 1) {
+              _fillPatientFields(results.first);
+              return;
+            }
+
+            // CASE 2 — Multiple patients, show dialog
+            showDialog(
+              context: context,
+              builder: (ctx) {
+                return AlertDialog(
+                  title: const Text("Select Patient"),
+                  content: SizedBox(
+                    width: 350,
+                    height: 300,
+                    child: ListView.builder(
+                      itemCount: results.length,
+                      itemBuilder: (_, i) {
+                        final p = results[i];
+                        return ListTile(
+                          title: Text(p.name ?? ""),
+                          subtitle: Text("Patient ID: ${p.patientId ?? ""}"),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _fillPatientFields(p);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            );
           },
         ),
         const SizedBox(height: 12),

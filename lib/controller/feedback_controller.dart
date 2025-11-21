@@ -16,7 +16,51 @@ class NewFeedbackController with ChangeNotifier {
   // Map<int, String> responses = {};
   List<FeedbackQuestionModel> questions = [];
 
-  Future<bool> getPatientDetailsForFeedback(String searchInput) async {
+  // Future<bool> getPatientDetailsForFeedback(String searchInput) async {
+  //   String uri = "${AppUtils.pythonBaseURL}/patient-op-ip/";
+
+  //   String queryParam;
+  //   if (RegExp(r'^[a-zA-Z]').hasMatch(searchInput)) {
+  //     queryParam = "?patient_id=$searchInput";
+  //   } else if (RegExp(r'^\d{10}$').hasMatch(searchInput)) {
+  //     queryParam = "?phone=$searchInput";
+  //   } else {
+  //     print('Invalid input. Please enter a valid Patient ID or Phone Number.');
+  //     return false;
+  //   }
+
+  //   String url = uri + queryParam;
+
+  //   try {
+  //     isLoading = true;
+  //     notifyListeners();
+
+  //     final response = await http.get(Uri.parse(url));
+
+  //     if (response.statusCode == 200) {
+  //       patientDetails = NewFeedbackModel.fromJson(jsonDecode(response.body));
+  //       debugPrint("Patient details fetched: ${patientDetails?.toJson()}");
+  //       notifyListeners();
+  //       return true;
+  //     } else {
+  //       debugPrint(
+  //         'Failed to fetch patient details.----------------------------------------- Status: ${response.statusCode}',
+  //       );
+  //       notifyListeners();
+  //       return false;
+  //     }
+  //   } catch (e) {
+  //     debugPrint('Error occurred while fetching patient details: $e');
+  //     notifyListeners();
+  //     return false;
+  //   } finally {
+  //     isLoading = false;
+  //     notifyListeners();
+  //   }
+  // }
+  Future<List<NewFeedbackModel>> getPatientDetailsForFeedback(
+    String searchInput,
+  ) async {
     String uri = "${AppUtils.pythonBaseURL}/patient-op-ip/";
 
     String queryParam;
@@ -25,38 +69,27 @@ class NewFeedbackController with ChangeNotifier {
     } else if (RegExp(r'^\d{10}$').hasMatch(searchInput)) {
       queryParam = "?phone=$searchInput";
     } else {
-      print('Invalid input. Please enter a valid Patient ID or Phone Number.');
-      return false;
+      debugPrint('Invalid input');
+      return [];
     }
-
-    String url = uri + queryParam;
 
     try {
-      isLoading = true;
-      notifyListeners();
+      final res = await http.get(Uri.parse(uri + queryParam));
 
-      final response = await http.get(Uri.parse(url));
+      if (res.statusCode == 200) {
+        final decoded = jsonDecode(res.body);
 
-      if (response.statusCode == 200) {
-        patientDetails = NewFeedbackModel.fromJson(jsonDecode(response.body));
-        debugPrint("Patient details fetched: ${patientDetails?.toJson()}");
-        notifyListeners();
-        return true;
-      } else {
-        debugPrint(
-          'Failed to fetch patient details.----------------------------------------- Status: ${response.statusCode}',
-        );
-        notifyListeners();
-        return false;
+        if (decoded is List && decoded.isNotEmpty) {
+          return decoded
+              .map<NewFeedbackModel>((e) => NewFeedbackModel.fromJson(e))
+              .toList();
+        }
       }
     } catch (e) {
-      debugPrint('Error occurred while fetching patient details: $e');
-      notifyListeners();
-      return false;
-    } finally {
-      isLoading = false;
-      notifyListeners();
+      debugPrint("Error occured: $e");
     }
+
+    return []; // empty list means no patient found
   }
 
   Future<void> getFeedbackQuestions() async {
