@@ -20,9 +20,10 @@ class _FeedbackHmsState extends State<FeedbackHms> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => NewFeedbackController()),
-      ],  
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        title: 'Feedback Highland',
         home: Scaffold(body: FeedbackNew()),
       ),
     );
